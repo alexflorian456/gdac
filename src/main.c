@@ -1,11 +1,7 @@
-#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdint.h>
 
-#include "scheduler.h"
+#include "api.h"
 
 void thread_1() {
     uint64_t x = 0;
@@ -15,6 +11,7 @@ void thread_1() {
         }
         x++;
     }
+    printf("Thread 1 Done\n");
 }
 
 void thread_2() {
@@ -25,29 +22,23 @@ void thread_2() {
         }
         x++;
     }
+    printf("Thread 2 Done\n");
 }
 
 int main() {
-    scheduler_init();
+    api_init();
 
-    scheduler_create_thread(thread_1);
-    scheduler_create_thread(thread_2);
+    api_create_thread(thread_1);
+    api_create_thread(thread_2);
 
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sigemptyset(&sa.sa_mask);
-    sa.sa_sigaction = scheduler_signal_handler;
-    sa.sa_flags = SA_NODEFER & SA_SIGINFO;
-    sigaction(SIGALRM, &sa, NULL);
-
-    struct itimerval timer;
-    timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 10000; // 10 ms
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 10000; // 10 ms
-
-    setitimer(ITIMER_REAL, &timer, NULL);
-    pause();
+    uint64_t x = 0;
+    while (x < 1000000000) {
+        if (x % 1000000 == 0) {
+            printf("Main thread %ld\n", x);
+        }
+        x++;
+    }
+    
     printf("Main exit\n");
     return 0;
 }
