@@ -1,6 +1,4 @@
 #define _GNU_SOURCE
-#include <stdint.h>
-#include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -32,10 +30,6 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
     } while (scheduler.greenthreads[scheduler.current_thread].done);
 
-    printf("Handler called. Current thread = %d. Thread done = %d\n",
-        scheduler.current_thread,
-        scheduler.greenthreads[scheduler.current_thread].done);
-
     // Only switch if interrupted context differs from next context
     // Otherwise: SEGFAULT (for some reason)
     if (old_thread_idx != scheduler.current_thread) {
@@ -45,15 +39,15 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
     }
 }
 
-void thread_wrapper_function(void (*function)(void), greenthread_t* thread) {
-    function();
+void thread_wrapper_function(thread_function_t function, void* args, greenthread_t* thread) {
+    function(args);
     thread->done = 1;
     pause();
 }
 
-void scheduler_create_thread(void (*function)(void)) {
+handle_t scheduler_create_thread(thread_function_t function, void* args) {
     if (scheduler.thread_count >= MAX_THREAD_COUNT) {
-        return;
+        return -1;
     }
 
     greenthread_t* thread = &scheduler.greenthreads[scheduler.thread_count];
@@ -64,7 +58,7 @@ void scheduler_create_thread(void (*function)(void)) {
     thread->context.uc_stack.ss_size = STACK_SIZE;
     thread->context.uc_link = 0;
 
-    makecontext(&thread->context, (void(*)(void))thread_wrapper_function, 2, function, thread);
+    makecontext(&thread->context, (void(*)(void))thread_wrapper_function, 3, function, args, thread);
 
-    scheduler.thread_count++;
+    return scheduler.thread_count++;
 }

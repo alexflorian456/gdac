@@ -1,4 +1,8 @@
+#ifndef SCHEDULER_H
+#define SCHEDULER_H
+
 #include <stdint.h>
+#include <signal.h>
 
 #include "greenthread.h"
 
@@ -10,8 +14,14 @@ typedef struct scheduler_t {
     uint32_t thread_count;
 } scheduler_t;
 
+typedef int32_t handle_t;
+
+typedef void*(*thread_function_t)(void*);
+
 void scheduler_init();
 
 void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext);
 
-void scheduler_create_thread(void (*function)(void));
+handle_t scheduler_create_thread(thread_function_t function, void* args);
+
+#endif // SCHEDULER_H

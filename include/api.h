@@ -1,2 +1,9 @@
+#ifndef API_H
+#define API_H
+
+#include "scheduler.h"
+
 void api_init();
-void api_create_thread();
+handle_t api_create_thread();
+
+#endif // API_H

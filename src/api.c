@@ -2,10 +2,8 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "api.h"
-#include "scheduler.h"
 
 void api_init() {
    scheduler_init();
@@ -26,6 +24,6 @@ void api_init() {
     setitimer(ITIMER_REAL, &timer, NULL);
 }
 
-void api_create_thread(void(*function)(void)) {
-    scheduler_create_thread(function);
+handle_t api_create_thread(thread_function_t function, void* args) {
+    return scheduler_create_thread(function, args);
 }
