@@ -46,6 +46,11 @@ void thread_wrapper_function(thread_function_t function, void* args, greenthread
 }
 
 handle_t scheduler_create_thread(thread_function_t function, void* args) {
+    sigset_t block_set, old_set;
+    sigemptyset(&block_set);
+    sigaddset(&block_set, SIGALRM);
+    sigprocmask(SIG_BLOCK, &block_set, &old_set);
+
     if (scheduler.thread_count >= MAX_THREAD_COUNT) {
         return -1;
     }
@@ -57,8 +62,13 @@ handle_t scheduler_create_thread(thread_function_t function, void* args) {
     thread->context.uc_stack.ss_sp = thread->stack;
     thread->context.uc_stack.ss_size = STACK_SIZE;
     thread->context.uc_link = 0;
+    thread->context.uc_sigmask = old_set;
 
     makecontext(&thread->context, (void(*)(void))thread_wrapper_function, 3, function, args, thread);
 
-    return scheduler.thread_count++;
+    scheduler.thread_count++;
+
+    sigprocmask(SIG_SETMASK, &old_set, NULL);
+
+    return scheduler.thread_count - 1;
 }
