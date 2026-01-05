@@ -22,6 +22,8 @@ void scheduler_init(void);
 
 void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext);
 
-handle_t scheduler_create_thread(thread_function_t function, void* args);
+handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_t old_set);
+
+handle_t scheduler_get_current_thread(void);
 
 #endif // SCHEDULER_H

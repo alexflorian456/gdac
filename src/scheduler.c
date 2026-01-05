@@ -45,12 +45,7 @@ void thread_wrapper_function(thread_function_t function, void* args, greenthread
     pause();
 }
 
-handle_t scheduler_create_thread(thread_function_t function, void* args) {
-    sigset_t block_set, old_set;
-    sigemptyset(&block_set);
-    sigaddset(&block_set, SIGALRM);
-    sigprocmask(SIG_BLOCK, &block_set, &old_set);
-
+handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_t old_set) {
     if (scheduler.thread_count >= MAX_THREAD_COUNT) {
         return -1;
     }
@@ -68,7 +63,9 @@ handle_t scheduler_create_thread(thread_function_t function, void* args) {
 
     scheduler.thread_count++;
 
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
-
     return scheduler.thread_count - 1;
+}
+
+handle_t scheduler_get_current_thread() {
+    return scheduler.current_thread;
 }

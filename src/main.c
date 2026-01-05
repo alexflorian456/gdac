@@ -14,7 +14,7 @@ void* thread_1(void* args) {
     while (x < 10000000) {
         x+=targs->a*targs->b;
     }
-    printf("Thread 1 Done\n");
+    printf("Thread %d Done\n", api_get_current_thread());
     return NULL;
 }
 
@@ -29,20 +29,22 @@ void* thread_2(void* args) {
     while (x < 10000000) {
         x+=targs->a+targs->b;
     }
-    printf("Thread 2 Done\n");
+    printf("Thread %d Done\n", api_get_current_thread());
     return NULL;
 }
 
 int main(void) {
     api_init();
 
-    api_create_thread(thread_1, &(struct thread_1_args){.a=2, .b=3});
-    api_create_thread(thread_2, &(struct thread_2_args){.a=5, .b=7});
+    handle_t handle_1 = api_create_thread(thread_1, &(struct thread_1_args){.a=2, .b=3});
+    handle_t handle_2 = api_create_thread(thread_2, &(struct thread_2_args){.a=5, .b=7});
 
     uint64_t x = 0;
     while (x < 1000000000) {
         x++;
     }
+
+    
     
     printf("Main exit\n");
     return 0;
