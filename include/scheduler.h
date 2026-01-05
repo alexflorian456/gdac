@@ -18,7 +18,7 @@ typedef int32_t handle_t;
 
 typedef void*(*thread_function_t)(void*);
 
-void scheduler_init();
+void scheduler_init(void);
 
 void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext);
 

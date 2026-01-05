@@ -33,7 +33,7 @@ void* thread_2(void* args) {
     return NULL;
 }
 
-int main() {
+int main(void) {
     api_init();
 
     api_create_thread(thread_1, &(struct thread_1_args){.a=2, .b=3});

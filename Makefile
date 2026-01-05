@@ -2,7 +2,7 @@
 
 # Variables
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -Werror -Wstrict-prototypes
 SRC = src/*
 BIN = bin/
 INCLUDE = -Iinclude
