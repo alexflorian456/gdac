@@ -25,30 +25,25 @@ void api_init() {
 }
 
 handle_t api_create_thread(thread_function_t function, void* args) {
-    sigset_t block_set, old_set;
-    sigemptyset(&block_set);
-    sigaddset(&block_set, SIGALRM);
-    sigprocmask(SIG_BLOCK, &block_set, &old_set);
-
-    handle_t handle = scheduler_create_thread(function, args, old_set);
-    
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
+    handle_t handle;
+    BLOCK_SCHEDULER(
+        handle = scheduler_create_thread(function, args, old_set);
+    );
     return handle;
 }
 
 handle_t api_get_current_thread() {
-    sigset_t block_set, old_set;
-    sigemptyset(&block_set);
-    sigaddset(&block_set, SIGALRM);
-    sigprocmask(SIG_BLOCK, &block_set, &old_set);
-
-    handle_t handle = scheduler_get_current_thread();
-
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
+    handle_t handle;
+    BLOCK_SCHEDULER(
+        handle = scheduler_get_current_thread();
+    );
     return handle;
 }
 
-void api_join_thread(handle_t handle) {
-    (void)handle;
-    // TODO: Implement thread joining
+void api_join_thread(handle_t handle_to_join) {
+    BLOCK_SCHEDULER(
+        handle_t handle_current = scheduler_get_current_thread();
+        scheduler_join_thread(handle_current, handle_to_join);
+    );
+    raise(SIGALRM);
 }

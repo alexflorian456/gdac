@@ -44,8 +44,8 @@ int main(void) {
         x++;
     }
 
-    (void)handle_1;
-    (void)handle_2;
+    api_join_thread(handle_1);
+    api_join_thread(handle_2);
     
     printf("Main exit\n");
     return 0;

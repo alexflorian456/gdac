@@ -10,6 +10,7 @@ void scheduler_init() {
     scheduler.current_thread = 0;
     scheduler.thread_count = 1;
     scheduler.greenthreads[0].done = 0;
+    scheduler.greenthreads[0].wait_for_join_handle = -1;
 }
 
 void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
@@ -30,6 +31,12 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
     } while (scheduler.greenthreads[scheduler.current_thread].done);
 
+    // // Handle wait for join
+    // handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
+    // if (current_wait_for_join != -1) {
+
+    // }
+
     // Only switch if interrupted context differs from next context
     // Otherwise: SEGFAULT (for some reason)
     if (old_thread_idx != scheduler.current_thread) {
@@ -42,14 +49,9 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
 void thread_wrapper_function(thread_function_t function, void* args, greenthread_t* thread) {
     function(args);
 
-    sigset_t block_set, old_set;
-    sigemptyset(&block_set);
-    sigaddset(&block_set, SIGALRM);
-    sigprocmask(SIG_BLOCK, &block_set, &old_set);
-
-    thread->done = 1;
-
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
+    BLOCK_SCHEDULER(
+        thread->done = 1;
+    );
 
     raise(SIGALRM);
 }
@@ -62,6 +64,7 @@ handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_
     greenthread_t* thread = &scheduler.greenthreads[scheduler.thread_count];
     getcontext(&thread->context);
     thread->done = 0;
+    thread->wait_for_join_handle = -1;
 
     thread->context.uc_stack.ss_sp = thread->stack;
     thread->context.uc_stack.ss_size = STACK_SIZE;
@@ -77,4 +80,8 @@ handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_
 
 handle_t scheduler_get_current_thread() {
     return scheduler.current_thread;
+}
+
+void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join) {
+    scheduler.greenthreads[handle_current].wait_for_join_handle = handle_to_join;
 }
