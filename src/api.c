@@ -49,5 +49,6 @@ handle_t api_get_current_thread() {
 }
 
 void api_join_thread(handle_t handle) {
+    (void)handle;
     // TODO: Implement thread joining
 }

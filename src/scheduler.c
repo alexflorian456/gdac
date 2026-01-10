@@ -41,8 +41,17 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
 
 void thread_wrapper_function(thread_function_t function, void* args, greenthread_t* thread) {
     function(args);
+
+    sigset_t block_set, old_set;
+    sigemptyset(&block_set);
+    sigaddset(&block_set, SIGALRM);
+    sigprocmask(SIG_BLOCK, &block_set, &old_set);
+
     thread->done = 1;
-    pause();
+
+    sigprocmask(SIG_SETMASK, &old_set, NULL);
+
+    raise(SIGALRM);
 }
 
 handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_t old_set) {
