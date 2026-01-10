@@ -27,15 +27,23 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
     }
 
     // Increment context
+    uint8_t current_thread_waits = 0;
     do {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
-    } while (scheduler.greenthreads[scheduler.current_thread].done);
+        // Handle wait for join
+        handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
+        current_thread_waits = 0;
+        if (current_wait_for_join != -1) {
+            if (!scheduler.greenthreads[current_wait_for_join].done) {
+                current_thread_waits = 1;
+            } else {
+                scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle = -1;
+            }
+        }
+    } while (scheduler.greenthreads[scheduler.current_thread].done ||
+             current_thread_waits);
 
-    // // Handle wait for join
-    // handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
-    // if (current_wait_for_join != -1) {
-
-    // }
+    printf("Thread picked: %d\n", scheduler.current_thread);
 
     // Only switch if interrupted context differs from next context
     // Otherwise: SEGFAULT (for some reason)
@@ -83,5 +91,6 @@ handle_t scheduler_get_current_thread() {
 }
 
 void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join) {
+    printf("Thread %d called join on thread %d\n", handle_current, handle_to_join);
     scheduler.greenthreads[handle_current].wait_for_join_handle = handle_to_join;
 }

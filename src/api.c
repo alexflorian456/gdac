@@ -29,6 +29,7 @@ handle_t api_create_thread(thread_function_t function, void* args) {
     BLOCK_SCHEDULER(
         handle = scheduler_create_thread(function, args, old_set);
     );
+    
     return handle;
 }
 
@@ -37,6 +38,7 @@ handle_t api_get_current_thread() {
     BLOCK_SCHEDULER(
         handle = scheduler_get_current_thread();
     );
+
     return handle;
 }
 
@@ -45,5 +47,6 @@ void api_join_thread(handle_t handle_to_join) {
         handle_t handle_current = scheduler_get_current_thread();
         scheduler_join_thread(handle_current, handle_to_join);
     );
+
     raise(SIGALRM);
 }

@@ -11,7 +11,7 @@ struct thread_1_args {
 void* thread_1(void* args) {
     struct thread_1_args* targs = (struct thread_1_args*)args;
     uint64_t x = 0;
-    while (x < 10000000) {
+    while (x < 1000000000) {
         x+=targs->a*targs->b;
     }
     printf("Thread %d Done\n", api_get_current_thread());
@@ -26,7 +26,7 @@ struct thread_2_args {
 void* thread_2(void* args) {
     struct thread_2_args* targs = (struct thread_2_args*)args;
     uint64_t x = 0;
-    while (x < 10000000) {
+    while (x < 1000000000) {
         x+=targs->a+targs->b;
     }
     printf("Thread %d Done\n", api_get_current_thread());
@@ -40,7 +40,7 @@ int main(void) {
     handle_t handle_2 = api_create_thread(thread_2, &(struct thread_2_args){.a=5, .b=7});
 
     uint64_t x = 0;
-    while (x < 1000000000) {
+    while (x < 1000) {
         x++;
     }
 
