@@ -30,16 +30,16 @@ void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext) {
     uint8_t current_thread_waits = 0;
     do {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
-        // Handle wait for join
-        handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
-        current_thread_waits = 0;
-        if (current_wait_for_join != -1) {
-            if (!scheduler.greenthreads[current_wait_for_join].done) {
-                current_thread_waits = 1;
-            } else {
-                scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle = -1;
-            }
-        }
+        // // Handle wait for join
+        // handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
+        // current_thread_waits = 0;
+        // if (current_wait_for_join != -1) {
+        //     if (!scheduler.greenthreads[current_wait_for_join].done) {
+        //         current_thread_waits = 1;
+        //     } else {
+        //         scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle = -1;
+        //     }
+        // }
     } while (scheduler.greenthreads[scheduler.current_thread].done ||
              current_thread_waits);
 
@@ -61,7 +61,7 @@ void thread_wrapper_function(thread_function_t function, void* args, greenthread
         thread->done = 1;
     );
 
-    raise(SIGALRM);
+    pause();
 }
 
 handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_t old_set) {

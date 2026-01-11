@@ -2,7 +2,7 @@
 #define GREENTHREAD_H
 
 #include <ucontext.h>
-#define STACK_SIZE 8192
+#define STACK_SIZE (128 * 1024)
 
 typedef int32_t handle_t;
 

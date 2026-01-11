@@ -1,18 +1,33 @@
-#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE 500
 #include <signal.h>
 #include <sys/time.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
 
 #include "api.h"
 
+static uint8_t sig_stack[STACK_SIZE];
+
 void api_init() {
-   scheduler_init();
+    scheduler_init();
+
+    stack_t ss;
+    ss.ss_sp = sig_stack;
+    ss.ss_size = sizeof(sig_stack);
+    ss.ss_flags = 0;
+
+    if (sigaltstack(&ss, NULL) == -1) {
+        perror("sigaltstack");
+        exit(1);
+    }
     
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);
     sa.sa_sigaction = scheduler_signal_handler;
-    sa.sa_flags = SA_NODEFER | SA_SIGINFO | SA_RESTART;
+    sa.sa_flags = SA_NODEFER | SA_SIGINFO | SA_RESTART | SA_ONSTACK;
     sigaction(SIGALRM, &sa, NULL);
 
     struct itimerval timer;
@@ -48,5 +63,5 @@ void api_join_thread(handle_t handle_to_join) {
         scheduler_join_thread(handle_current, handle_to_join);
     );
 
-    raise(SIGALRM);
+    pause();
 }
