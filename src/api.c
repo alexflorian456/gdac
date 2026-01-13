@@ -67,3 +67,12 @@ void api_join_thread(handle_t handle_to_join)
 
     pause();
 }
+
+void api_exit_thread()
+{
+    BLOCK_SCHEDULER(
+        handle_t handle_current = scheduler_get_current_thread();
+        scheduler_exit_thread(handle_current););
+
+    pause();
+}

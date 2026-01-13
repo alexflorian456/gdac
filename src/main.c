@@ -27,6 +27,7 @@ void *thread_1(void *args)
             printf("Thread 1 %lu\n", x);
         }
     }
+    api_exit_thread();
     printf("Thread %d Done\n", api_get_current_thread());
     return NULL;
 }

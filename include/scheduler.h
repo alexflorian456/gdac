@@ -27,4 +27,6 @@ handle_t scheduler_get_current_thread(void);
 
 void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join);
 
+void scheduler_exit_thread(handle_t handle_current);
+
 #endif // SCHEDULER_H

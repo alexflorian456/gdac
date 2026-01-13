@@ -122,6 +122,10 @@ handle_t scheduler_get_current_thread()
 
 void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join)
 {
-    printf("Thread %d called join on thread %d\n", handle_current, handle_to_join);
     scheduler.greenthreads[handle_current].wait_for_join_handle = handle_to_join;
+}
+
+void scheduler_exit_thread(handle_t handle_current)
+{
+    scheduler.greenthreads[handle_current].done = 1;
 }
