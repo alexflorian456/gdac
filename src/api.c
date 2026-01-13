@@ -28,8 +28,8 @@ void api_init()
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);
-    sa.sa_sigaction = scheduler_signal_handler;
-    sa.sa_flags = SA_SIGINFO;
+    sa.sa_handler = scheduler_signal_handler;
+    sa.sa_flags = 0;
     sigaction(SIGALRM, &sa, NULL);
 
     struct itimerval timer;

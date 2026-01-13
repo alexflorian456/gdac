@@ -19,7 +19,7 @@ typedef void*(*thread_function_t)(void*);
 
 void scheduler_init(void);
 
-void scheduler_signal_handler(int sig, siginfo_t* si, void* ucontext);
+void scheduler_signal_handler(int sig);
 
 handle_t scheduler_create_thread(thread_function_t function, void* args, sigset_t old_set);
 
