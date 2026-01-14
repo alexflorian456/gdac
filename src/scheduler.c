@@ -12,8 +12,7 @@ void scheduler_signal_trampoline(void);
 static ucontext_t scheduler_trampoline_ctx;
 alignas(16) static uint8_t scheduler_trampoline_stack[STACK_SIZE];
 
-void scheduler_init()
-{
+void scheduler_init() {
     scheduler.current_thread = 0;
     scheduler.thread_count = 1;
     scheduler.greenthreads[0].done = 0;
@@ -29,11 +28,9 @@ void scheduler_init()
     makecontext(&scheduler_trampoline_ctx, (void (*)(void))scheduler_signal_trampoline, 0);
 }
 
-void scheduler_signal_handler(int sig)
-{
+void scheduler_signal_handler(int sig) {
     (void)sig;
-    if (scheduler.thread_count == 0)
-    {
+    if (scheduler.thread_count == 0) {
         return;
     }
     /* Save interrupted context (into the greenthread slot) and switch to
@@ -51,19 +48,15 @@ void scheduler_signal_handler(int sig)
 
     /* Increment context to pick the next runnable thread */
     uint8_t current_thread_waits = 0;
-    do
-    {
+    do {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
         handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
         current_thread_waits = 0;
-        if (current_wait_for_join != -1)
-        {
-            if (!scheduler.greenthreads[current_wait_for_join].done)
-            {
+        if (current_wait_for_join != -1) {
+            if (!scheduler.greenthreads[current_wait_for_join].done) {
                 current_thread_waits = 1;
             }
-            else
-            {
+            else {
                 scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle = -1;
             }
         }
@@ -74,15 +67,13 @@ void scheduler_signal_handler(int sig)
     /* When we resume here, another context has been restored; handler exits. */
 }
 
-void scheduler_signal_trampoline()
-{
+void scheduler_signal_trampoline() {
     BLOCK_SCHEDULER(
         setcontext(&scheduler.greenthreads[scheduler.current_thread].context);
         __builtin_unreachable(););
 }
 
-void thread_wrapper_function(thread_function_t function, void *args, greenthread_t *thread)
-{
+void thread_wrapper_function(thread_function_t function, void *args, greenthread_t *thread) {
     function(args);
 
     BLOCK_SCHEDULER(
@@ -91,10 +82,8 @@ void thread_wrapper_function(thread_function_t function, void *args, greenthread
     pause();
 }
 
-handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set)
-{
-    if (scheduler.thread_count >= MAX_THREAD_COUNT)
-    {
+handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set) {
+    if (scheduler.thread_count >= MAX_THREAD_COUNT) {
         return -1;
     }
 
@@ -115,17 +104,14 @@ handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_
     return scheduler.thread_count - 1;
 }
 
-handle_t scheduler_get_current_thread()
-{
+handle_t scheduler_get_current_thread() {
     return scheduler.current_thread;
 }
 
-void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join)
-{
+void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join) {
     scheduler.greenthreads[handle_current].wait_for_join_handle = handle_to_join;
 }
 
-void scheduler_exit_thread(handle_t handle_current)
-{
+void scheduler_exit_thread(handle_t handle_current) {
     scheduler.greenthreads[handle_current].done = 1;
 }

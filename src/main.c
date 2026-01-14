@@ -6,24 +6,20 @@
 
 static const uint64_t print_step = 10000000;
 
-struct thread_1_args
-{
+struct thread_1_args {
     int a;
     int b;
 };
 
-void *thread_1(void *args)
-{
+void *thread_1(void *args) {
     struct thread_1_args *targs = (struct thread_1_args *)args;
     uint64_t x = 0;
     uint64_t step = 0;
-    while (x < 1000000000)
-    {
+    while (x < 1000000000) {
         x += targs->a * targs->b;
 
         step++;
-        if (step % print_step == 0)
-        {
+        if (step % print_step == 0) {
             printf("Thread 1 %lu\n", x);
         }
     }
@@ -32,24 +28,20 @@ void *thread_1(void *args)
     return NULL;
 }
 
-struct thread_2_args
-{
+struct thread_2_args {
     int a;
     int b;
 };
 
-void *thread_2(void *args)
-{
+void *thread_2(void *args) {
     struct thread_2_args *targs = (struct thread_2_args *)args;
     uint64_t x = 0;
     uint64_t step = 0;
-    while (x < 1000000000)
-    {
+    while (x < 1000000000) {
         x += targs->a + targs->b;
 
         step++;
-        if (step % print_step == 0)
-        {
+        if (step % print_step == 0) {
             printf("Thread 2 %lu\n", x);
         }
     }
@@ -57,8 +49,7 @@ void *thread_2(void *args)
     return NULL;
 }
 
-int main(void)
-{
+int main(void) {
     api_init();
 
     struct thread_1_args *a1 = malloc(sizeof(*a1));
@@ -70,11 +61,9 @@ int main(void)
     handle_t handle_2 = api_create_thread(thread_2, a2);
 
     uint64_t x = 0;
-    while (x < 1000000000)
-    {
+    while (x < 1000000000) {
         x++;
-        if (x % print_step == 0)
-        {
+        if (x % print_step == 0) {
             printf("Thread 0 %lu\n", x);
         }
     }

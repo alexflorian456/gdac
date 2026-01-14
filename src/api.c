@@ -10,8 +10,7 @@
 
 alignas(16) static uint8_t sig_stack[STACK_SIZE];
 
-void api_init()
-{
+void api_init() {
     scheduler_init();
 
     stack_t ss;
@@ -19,8 +18,7 @@ void api_init()
     ss.ss_size = sizeof(sig_stack);
     ss.ss_flags = 0;
 
-    if (sigaltstack(&ss, NULL) == -1)
-    {
+    if (sigaltstack(&ss, NULL) == -1) {
         perror("sigaltstack");
         exit(1);
     }
@@ -41,8 +39,7 @@ void api_init()
     setitimer(ITIMER_REAL, &timer, NULL);
 }
 
-handle_t api_create_thread(thread_function_t function, void *args)
-{
+handle_t api_create_thread(thread_function_t function, void *args) {
     handle_t handle;
     BLOCK_SCHEDULER(
         handle = scheduler_create_thread(function, args, old_set););
@@ -50,8 +47,7 @@ handle_t api_create_thread(thread_function_t function, void *args)
     return handle;
 }
 
-handle_t api_get_current_thread()
-{
+handle_t api_get_current_thread() {
     handle_t handle;
     BLOCK_SCHEDULER(
         handle = scheduler_get_current_thread(););
@@ -59,8 +55,7 @@ handle_t api_get_current_thread()
     return handle;
 }
 
-void api_join_thread(handle_t handle_to_join)
-{
+void api_join_thread(handle_t handle_to_join) {
     BLOCK_SCHEDULER(
         handle_t handle_current = scheduler_get_current_thread();
         scheduler_join_thread(handle_current, handle_to_join););
@@ -68,8 +63,7 @@ void api_join_thread(handle_t handle_to_join)
     pause();
 }
 
-void api_exit_thread()
-{
+void api_exit_thread() {
     BLOCK_SCHEDULER(
         handle_t handle_current = scheduler_get_current_thread();
         scheduler_exit_thread(handle_current););

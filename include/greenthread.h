@@ -7,8 +7,7 @@
 
 typedef int32_t handle_t;
 
-typedef struct greenthread_t
-{
+typedef struct greenthread_t {
     ucontext_t context;
     alignas(16) uint8_t stack[STACK_SIZE];
     uint8_t done;
