@@ -89,7 +89,7 @@ void thread_wrapper_function(thread_function_t function, void *args, greenthread
     BLOCK_SCHEDULER(
         thread->done = 1;);
 
-    pause();
+    raise(SIGALRM);
 }
 
 greenthread_handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set) {

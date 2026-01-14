@@ -73,7 +73,7 @@ void api_join_thread(greenthread_handle_t greenthread_handle_to_join) {
         greenthread_handle_t handle_current = scheduler_get_current_thread();
         scheduler_join_thread(handle_current, greenthread_handle_to_join););
 
-    pause();
+    raise(SIGALRM);
 }
 
 void api_exit_thread() {
@@ -81,7 +81,7 @@ void api_exit_thread() {
         greenthread_handle_t handle_current = scheduler_get_current_thread();
         scheduler_exit_thread(handle_current););
 
-    pause(); // TODO: try with raise(SIGALRM);
+    raise(SIGALRM);
 }
 
 mutex_handle_t api_create_mutex() {
@@ -99,7 +99,7 @@ void api_lock_mutex(mutex_handle_t mutex_handle) {
         acquired_lock = scheduler_lock_mutex(mutex_handle, current_thread););
     
     if (!acquired_lock) {
-        pause();
+        raise(SIGALRM);
         api_lock_mutex(mutex_handle);
     }
 }
@@ -126,7 +126,7 @@ void api_wait_sem(sem_handle_t sem_handle) {
         acquired_lock = scheduler_wait_sem(sem_handle, current_thread););
     
     if (!acquired_lock) {
-        pause();
+        raise(SIGALRM);
         api_wait_sem(sem_handle);
     }
 }
