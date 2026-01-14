@@ -24,7 +24,7 @@ void *thread_1(void *args) {
         }
     }
     api_exit_thread();
-    printf("Thread %d Done\n", api_get_current_thread());
+    printf("Thread %d Done\n", api_get_current_thread().id);
     return NULL;
 }
 
@@ -45,7 +45,7 @@ void *thread_2(void *args) {
             printf("Thread 2 %lu\n", x);
         }
     }
-    printf("Thread %d Done\n", api_get_current_thread());
+    printf("Thread %d Done\n", api_get_current_thread().id);
     return NULL;
 }
 
@@ -54,11 +54,11 @@ int main(void) {
 
     struct thread_1_args *a1 = malloc(sizeof(*a1));
     *a1 = (struct thread_1_args){.a = 2, .b = 3};
-    handle_t handle_1 = api_create_thread(thread_1, a1);
+    greenthread_handle_t handle_1 = api_create_thread(thread_1, a1);
 
     struct thread_2_args *a2 = malloc(sizeof(*a2));
     *a2 = (struct thread_2_args){.a = 4, .b = 5};
-    handle_t handle_2 = api_create_thread(thread_2, a2);
+    greenthread_handle_t handle_2 = api_create_thread(thread_2, a2);
 
     uint64_t x = 0;
     while (x < 1000000000) {

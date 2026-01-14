@@ -13,10 +13,15 @@ static ucontext_t scheduler_trampoline_ctx;
 alignas(16) static uint8_t scheduler_trampoline_stack[STACK_SIZE];
 
 void scheduler_init() {
+    // Initialize thread data
     scheduler.current_thread = 0;
     scheduler.thread_count = 1;
     scheduler.greenthreads[0].done = 0;
-    scheduler.greenthreads[0].wait_for_join_handle = -1;
+    scheduler.greenthreads[0].wait_for_join_handle.id = -1;
+    scheduler.greenthreads[0].wait_for_mutex_lock_handle.id = -1;
+
+    // Initialize mutex data
+    scheduler.mutex_count = 0;
 
     /* Initialize trampoline context with its own stack so signal handler
      * can switch to a clean user context rather than relying on the
@@ -50,14 +55,14 @@ void scheduler_signal_handler(int sig) {
     uint8_t current_thread_waits = 0;
     do {
         scheduler.current_thread = (scheduler.current_thread + 1) % scheduler.thread_count;
-        handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
+        greenthread_handle_t current_wait_for_join = scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle;
         current_thread_waits = 0;
-        if (current_wait_for_join != -1) {
-            if (!scheduler.greenthreads[current_wait_for_join].done) {
+        if (current_wait_for_join.id != -1) {
+            if (!scheduler.greenthreads[current_wait_for_join.id].done) {
                 current_thread_waits = 1;
             }
             else {
-                scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle = -1;
+                scheduler.greenthreads[scheduler.current_thread].wait_for_join_handle.id = -1;
             }
         }
     } while (scheduler.greenthreads[scheduler.current_thread].done || current_thread_waits);
@@ -82,15 +87,17 @@ void thread_wrapper_function(thread_function_t function, void *args, greenthread
     pause();
 }
 
-handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set) {
+greenthread_handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set) {
+    greenthread_handle_t ret;
     if (scheduler.thread_count >= MAX_THREAD_COUNT) {
-        return -1;
+        ret.id = -1;
+        return ret;
     }
 
     greenthread_t *thread = &scheduler.greenthreads[scheduler.thread_count];
     getcontext(&thread->context);
     thread->done = 0;
-    thread->wait_for_join_handle = -1;
+    thread->wait_for_join_handle.id = -1;
 
     thread->context.uc_stack.ss_sp = thread->stack;
     thread->context.uc_stack.ss_size = STACK_SIZE;
@@ -101,17 +108,20 @@ handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_
 
     scheduler.thread_count++;
 
-    return scheduler.thread_count - 1;
+    ret.id = scheduler.thread_count - 1;
+    return ret;
 }
 
-handle_t scheduler_get_current_thread() {
-    return scheduler.current_thread;
+greenthread_handle_t scheduler_get_current_thread() {
+    greenthread_handle_t ret;
+    ret.id = scheduler.current_thread;
+    return ret;
 }
 
-void scheduler_join_thread(handle_t handle_current, handle_t handle_to_join) {
-    scheduler.greenthreads[handle_current].wait_for_join_handle = handle_to_join;
+void scheduler_join_thread(greenthread_handle_t handle_current, greenthread_handle_t greenthread_handle_to_join) {
+    scheduler.greenthreads[handle_current.id].wait_for_join_handle = greenthread_handle_to_join;
 }
 
-void scheduler_exit_thread(handle_t handle_current) {
-    scheduler.greenthreads[handle_current].done = 1;
+void scheduler_exit_thread(greenthread_handle_t handle_current) {
+    scheduler.greenthreads[handle_current.id].done = 1;
 }

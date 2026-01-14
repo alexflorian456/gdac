@@ -3,15 +3,21 @@
 
 #include <ucontext.h>
 #include <stdalign.h>
+
+#include "mutex.h"
+
 #define STACK_SIZE (128 * 1024)
 
-typedef int32_t handle_t;
+typedef struct greenthread_handle_t {
+    int32_t id;
+} greenthread_handle_t;
 
 typedef struct greenthread_t {
     ucontext_t context;
     alignas(16) uint8_t stack[STACK_SIZE];
     uint8_t done;
-    handle_t wait_for_join_handle;
+    greenthread_handle_t wait_for_join_handle;
+    mutex_handle_t wait_for_mutex_lock_handle;
 } greenthread_t;
 
 #endif // GREENTHREAD_H
