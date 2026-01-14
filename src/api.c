@@ -72,20 +72,37 @@ void api_exit_thread() {
         greenthread_handle_t handle_current = scheduler_get_current_thread();
         scheduler_exit_thread(handle_current););
 
-    pause();
+    pause(); // TODO: try with raise(SIGALRM);
 }
 
 mutex_handle_t api_create_mutex() {
     mutex_handle_t ret;
-    ret.id = 23;
+    BLOCK_SCHEDULER(
+        ret = scheduler_create_mutex(););
     return ret;
 }
 
 void api_lock_mutex(mutex_handle_t mutex_handle) {
-    printf("mutex handle %d\n", mutex_handle.id);
+    uint8_t acquired_lock = 0;
+    greenthread_handle_t current_thread;
+    BLOCK_SCHEDULER(
+        current_thread = scheduler_get_current_thread();
+        acquired_lock = scheduler_lock_mutex(mutex_handle););
+    
+    if (!acquired_lock) {
+        printf("Thread %d did not acquire lock\n", current_thread.id);
+        pause();
+        api_lock_mutex(mutex_handle);
+    }
+    printf("Thread %d acquired lock\n", current_thread.id);
 }
 
 void api_unlock_mutex(mutex_handle_t mutex_handle) {
-    (void)mutex_handle;
+    greenthread_handle_t current_thread;
+    BLOCK_SCHEDULER(
+        current_thread = scheduler_get_current_thread();
+        scheduler_unlock_mutex(mutex_handle););
+
+    printf("Thread %d unlocked\n", current_thread.id);
 }
 

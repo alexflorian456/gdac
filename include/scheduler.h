@@ -32,4 +32,10 @@ void scheduler_join_thread(greenthread_handle_t handle_current, greenthread_hand
 
 void scheduler_exit_thread(greenthread_handle_t handle_current);
 
+mutex_handle_t scheduler_create_mutex(void);
+
+uint8_t scheduler_lock_mutex(mutex_handle_t mutex_handle);
+
+void scheduler_unlock_mutex(mutex_handle_t mutex_handle);
+
 #endif // SCHEDULER_H
