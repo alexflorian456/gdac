@@ -15,4 +15,6 @@ mutex_handle_t api_create_mutex(void);
 void api_lock_mutex(mutex_handle_t mutex_handle);
 void api_unlock_mutex(mutex_handle_t mutex_handle);
 
+void api_deadlock_report(int sig);
+
 #endif // API_H

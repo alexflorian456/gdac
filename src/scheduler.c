@@ -91,7 +91,7 @@ void thread_wrapper_function(thread_function_t function, void *args, greenthread
 greenthread_handle_t scheduler_create_thread(thread_function_t function, void *args, sigset_t old_set) {
     greenthread_handle_t ret;
     if (scheduler.thread_count >= MAX_THREAD_COUNT) {
-        perror("Max thread count reached");
+        fprintf(stderr, "Max thread count reached\n");
         exit(1);
     }
 
@@ -130,7 +130,7 @@ void scheduler_exit_thread(greenthread_handle_t handle_current) {
 mutex_handle_t scheduler_create_mutex() {
     mutex_handle_t ret;
     if (scheduler.mutex_count >= MAX_MUTEX_COUNT) {
-        perror("Max mutex count reached");
+        fprintf(stderr, "Max mutex count reached\n");
         exit(1);
     }
     ret.id = scheduler.mutex_count;
@@ -151,7 +151,7 @@ uint8_t scheduler_lock_mutex(mutex_handle_t mutex_handle) {
 void scheduler_unlock_mutex(mutex_handle_t mutex_handle) {
     int32_t mutex_idx = mutex_handle.id;
     if (!scheduler.mutexes[mutex_idx].is_locked) {
-        perror("Double unlock on mutex called");
+        fprintf(stderr, "Double unlock on mutex called\n");
         exit(1);
     }
     scheduler.mutexes[mutex_idx].is_locked = 0;

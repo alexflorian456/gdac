@@ -19,16 +19,25 @@ void api_init() {
     ss.ss_flags = 0;
 
     if (sigaltstack(&ss, NULL) == -1) {
-        perror("sigaltstack");
+        fprintf(stderr, "sigaltstack\n");
         exit(1);
     }
 
+    /* SIGALRM: scheduler tick */
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);
     sa.sa_handler = scheduler_signal_handler;
     sa.sa_flags = 0;
     sigaction(SIGALRM, &sa, NULL);
+
+    /* SIGQUIT: deadlock report */
+    struct sigaction sa_quit;
+    memset(&sa_quit, 0, sizeof(sa_quit));
+    sigemptyset(&sa_quit.sa_mask);
+    sa_quit.sa_handler = api_deadlock_report;
+    sa_quit.sa_flags = 0;
+    sigaction(SIGQUIT, &sa_quit, NULL);
 
     struct itimerval timer;
     timer.it_value.tv_sec = 0;
@@ -85,24 +94,29 @@ mutex_handle_t api_create_mutex() {
 void api_lock_mutex(mutex_handle_t mutex_handle) {
     uint8_t acquired_lock = 0;
     greenthread_handle_t current_thread;
+    (void)current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
         acquired_lock = scheduler_lock_mutex(mutex_handle););
     
     if (!acquired_lock) {
-        printf("Thread %d did not acquire lock\n", current_thread.id);
+        // printf("Thread %d did not acquire lock\n", current_thread.id);
         pause();
         api_lock_mutex(mutex_handle);
     }
-    printf("Thread %d acquired lock\n", current_thread.id);
+    // printf("Thread %d acquired lock\n", current_thread.id);
 }
 
 void api_unlock_mutex(mutex_handle_t mutex_handle) {
     greenthread_handle_t current_thread;
+    (void)current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
         scheduler_unlock_mutex(mutex_handle););
 
-    printf("Thread %d unlocked\n", current_thread.id);
+    // printf("Thread %d unlocked\n", current_thread.id);
 }
 
+void api_deadlock_report(int sig) {
+    (void)sig;
+}

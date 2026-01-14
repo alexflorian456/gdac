@@ -20,7 +20,7 @@ void *thread_1(void *args) {
 
         step++;
         if (step % print_step == 0) {
-            printf("Thread 1 %lu\n", x);
+            printf("Thread %d %lu\n", api_get_current_thread_id(), x);
         }
     }
     api_exit_thread();
@@ -42,7 +42,7 @@ void *thread_2(void *args) {
 
         step++;
         if (step % print_step == 0) {
-            printf("Thread 2 %lu\n", x);
+            printf("Thread %d %lu\n", api_get_current_thread_id(), x);
         }
     }
     printf("Thread %d Done\n", api_get_current_thread_id());
@@ -103,6 +103,9 @@ int main(void) {
 
     api_join_thread(handle_1);
     api_join_thread(handle_2);
+
+    (void)handle_1;
+    (void)handle_2;
     
     printf("Global sum: %ld\n", g_sum);
     
