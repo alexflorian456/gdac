@@ -60,6 +60,10 @@ struct thread_sum_args {
 };
 
 void *thread_sum(void *args) {
+    // // For testing join deadlock detection
+    // greenthread_handle_t main_handle = {.id = 0};
+    // api_join_thread(main_handle);
+
     struct thread_sum_args *targs = (struct thread_sum_args*)args;
     uint64_t start = targs->start;
     uint64_t end = targs->end;
@@ -127,6 +131,9 @@ int main(void) {
     struct thread_sum_args *a2 = malloc(sizeof(*a2));
     *a2 = (struct thread_sum_args){.start = n/2, .end = n-1};
     greenthread_handle_t handle_2 = api_create_thread(thread_sum, a2);
+
+    // // For testing mutex deadlock detection
+    // greenthread_handle_t handle_2 = api_create_thread(thread_sum_2, a2);
 
     api_join_thread(handle_1);
     api_join_thread(handle_2);
