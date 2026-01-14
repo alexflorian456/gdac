@@ -106,10 +106,41 @@ void api_lock_mutex(mutex_handle_t mutex_handle) {
 
 void api_unlock_mutex(mutex_handle_t mutex_handle) {
     greenthread_handle_t current_thread;
-    (void)current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
         scheduler_unlock_mutex(mutex_handle, current_thread););
+}
+
+sem_handle_t api_create_sem(uint8_t value) {
+    sem_handle_t ret;
+    BLOCK_SCHEDULER(
+        ret = scheduler_create_sem(value););
+    return ret;
+}
+
+void api_wait_sem(sem_handle_t sem_handle) {
+    uint8_t acquired_lock = 0;
+    greenthread_handle_t current_thread;
+    BLOCK_SCHEDULER(
+        current_thread = scheduler_get_current_thread();
+        acquired_lock = scheduler_wait_sem(sem_handle, current_thread););
+    
+    if (!acquired_lock) {
+        pause();
+        api_wait_sem(sem_handle);
+    }
+}
+
+void api_post_sem(sem_handle_t sem_handle) {
+    greenthread_handle_t current_thread;
+    BLOCK_SCHEDULER(
+        current_thread = scheduler_get_current_thread();
+        scheduler_post_sem(sem_handle, current_thread););
+}
+
+void api_destroy_sem(sem_handle_t sem_handle) {
+    BLOCK_SCHEDULER(
+        scheduler_destroy_sem(sem_handle););
 }
 
 void api_deadlock_report(int sig) {

@@ -4,7 +4,7 @@
 
 #include "api.h"
 
-static const uint64_t print_step = 10000000;
+static const uint64_t print_step = 100000000;
 
 struct thread_1_args {
     int a;
@@ -53,6 +53,7 @@ uint64_t g_sum;
 uint64_t *g_array;
 mutex_handle_t g_mutex;
 mutex_handle_t g_mutex_2;
+sem_handle_t g_sem;
 
 struct thread_sum_args {
     uint64_t start;
@@ -72,16 +73,29 @@ void *thread_sum(void *args) {
         local_sum += g_array[i];
     }
     printf("Thread %d local sum: %ld\n", api_get_current_thread().id, local_sum);
-    api_lock_mutex(g_mutex);
+
+    // // Mutexes
+    // api_lock_mutex(g_mutex);
+    // for (uint64_t x = 0; x < 1000000000; x++) {
+    //     if (x % print_step == 0) {
+    //         printf("Thread %d %lu\n", api_get_current_thread_id(), x);
+    //     }
+    // }
+    // api_lock_mutex(g_mutex_2);
+    // g_sum += local_sum;
+    // api_unlock_mutex(g_mutex_2);
+    // api_unlock_mutex(g_mutex);
+
+    // Semaphores
+    api_wait_sem(g_sem);
     for (uint64_t x = 0; x < 1000000000; x++) {
         if (x % print_step == 0) {
             printf("Thread %d %lu\n", api_get_current_thread_id(), x);
         }
     }
-    api_lock_mutex(g_mutex_2);
     g_sum += local_sum;
-    api_unlock_mutex(g_mutex_2);
-    api_unlock_mutex(g_mutex);
+    api_post_sem(g_sem);
+
     printf("Thread %d Done\n", api_get_current_thread_id());
     return NULL;
 }
@@ -123,23 +137,32 @@ int main(void) {
 
     g_mutex = api_create_mutex();
     g_mutex_2 = api_create_mutex();
+    g_sem = api_create_sem(2);
 
     struct thread_sum_args *a1 = malloc(sizeof(*a1));
-    *a1 = (struct thread_sum_args){.start = 0, .end = n/2-1};
+    *a1 = (struct thread_sum_args){.start = 0, .end = n/3-1};
     greenthread_handle_t handle_1 = api_create_thread(thread_sum, a1);
 
     struct thread_sum_args *a2 = malloc(sizeof(*a2));
-    *a2 = (struct thread_sum_args){.start = n/2, .end = n-1};
+    *a2 = (struct thread_sum_args){.start = n/3, .end = 2*n/3-1};
     greenthread_handle_t handle_2 = api_create_thread(thread_sum, a2);
 
     // // For testing mutex deadlock detection
     // greenthread_handle_t handle_2 = api_create_thread(thread_sum_2, a2);
 
+    struct thread_sum_args *a3 = malloc(sizeof(*a3));
+    *a3 = (struct thread_sum_args){.start = 2*n/3, .end = n-1};
+    greenthread_handle_t handle_3 = api_create_thread(thread_sum, a3);
+
+    // api_destroy_sem(g_sem);
+    
     api_join_thread(handle_1);
     api_join_thread(handle_2);
+    api_join_thread(handle_3);
 
     (void)handle_1;
     (void)handle_2;
+    (void)handle_3;
     
     printf("Global sum: %ld\n", g_sum);
     

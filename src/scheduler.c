@@ -25,6 +25,9 @@ void scheduler_init() {
     // Initialize mutex data
     scheduler.mutex_count = 0;
 
+    // Initialize semaphore data
+    scheduler.sem_count = 0;
+
     /* Initialize trampoline context with its own stack so signal handler
      * can switch to a clean user context rather than relying on the
      * kernel signal frame. */
@@ -165,6 +168,52 @@ void scheduler_unlock_mutex(mutex_handle_t mutex_handle, greenthread_handle_t cu
     }
     scheduler.mutexes[mutex_idx].is_locked = 0;
     scheduler.greenthreads[current_handle.id].acquired_mutex_handle.id = -1;
+}
+
+sem_handle_t scheduler_create_sem(uint8_t value) {
+    sem_handle_t ret;
+    if (scheduler.sem_count >= MAX_SEM_COUNT) {
+        fprintf(stderr, "Max semaphore count reached\n");
+        exit(1);
+    }
+    ret.id = scheduler.sem_count;
+    scheduler.sems[ret.id].value = value;
+    scheduler.sems[ret.id].valid = 1;
+    scheduler.sem_count++;
+    return ret;
+}
+
+uint8_t scheduler_wait_sem(sem_handle_t sem_handle, greenthread_handle_t current_handle) {
+    (void)current_handle;
+    int32_t sem_idx = sem_handle.id;
+    if (!scheduler.sems[sem_idx].valid) {
+        fprintf(stderr, "Wait called on invalid semaphore\n");
+        exit(1);
+    }
+    if (0 == scheduler.sems[sem_idx].value) {
+        return 0;
+    }
+    scheduler.sems[sem_idx].value -= 1;
+    return 1;
+}
+
+void scheduler_post_sem(sem_handle_t sem_handle, greenthread_handle_t current_handle) {
+    (void)current_handle;
+    int32_t sem_idx = sem_handle.id;
+    if (!scheduler.sems[sem_idx].valid) {
+        fprintf(stderr, "Post called on invalid semaphore\n");
+        exit(1);
+    }
+    scheduler.sems[sem_idx].value += 1;
+}
+
+void scheduler_destroy_sem(sem_handle_t sem_handle) {
+    int32_t sem_idx = sem_handle.id;
+    if (!scheduler.sems[sem_idx].valid) {
+        fprintf(stderr, "Destroy called on invalid semaphore\n");
+        exit(1);
+    }
+    scheduler.sems[sem_idx].valid = 0;
 }
 
 #define WHITE 0
