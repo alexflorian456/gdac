@@ -55,6 +55,10 @@ greenthread_handle_t api_get_current_thread() {
     return handle;
 }
 
+int32_t api_get_current_thread_id() {
+    return api_get_current_thread().id;
+}
+
 void api_join_thread(greenthread_handle_t greenthread_handle_to_join) {
     BLOCK_SCHEDULER(
         greenthread_handle_t handle_current = scheduler_get_current_thread();
@@ -70,3 +74,18 @@ void api_exit_thread() {
 
     pause();
 }
+
+mutex_handle_t api_create_mutex() {
+    mutex_handle_t ret;
+    ret.id = 23;
+    return ret;
+}
+
+void api_lock_mutex(mutex_handle_t mutex_handle) {
+    printf("mutex handle %d\n", mutex_handle.id);
+}
+
+void api_unlock_mutex(mutex_handle_t mutex_handle) {
+    (void)mutex_handle;
+}
+
