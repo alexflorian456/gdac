@@ -94,17 +94,14 @@ mutex_handle_t api_create_mutex() {
 void api_lock_mutex(mutex_handle_t mutex_handle) {
     uint8_t acquired_lock = 0;
     greenthread_handle_t current_thread;
-    (void)current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
-        acquired_lock = scheduler_lock_mutex(mutex_handle););
+        acquired_lock = scheduler_lock_mutex(mutex_handle, current_thread););
     
     if (!acquired_lock) {
-        // printf("Thread %d did not acquire lock\n", current_thread.id);
         pause();
         api_lock_mutex(mutex_handle);
     }
-    // printf("Thread %d acquired lock\n", current_thread.id);
 }
 
 void api_unlock_mutex(mutex_handle_t mutex_handle) {
@@ -112,11 +109,11 @@ void api_unlock_mutex(mutex_handle_t mutex_handle) {
     (void)current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
-        scheduler_unlock_mutex(mutex_handle););
-
-    // printf("Thread %d unlocked\n", current_thread.id);
+        scheduler_unlock_mutex(mutex_handle, current_thread););
 }
 
 void api_deadlock_report(int sig) {
     (void)sig;
+    BLOCK_SCHEDULER(
+        scheduler_deadlock_report(););
 }

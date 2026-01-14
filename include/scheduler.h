@@ -34,8 +34,10 @@ void scheduler_exit_thread(greenthread_handle_t handle_current);
 
 mutex_handle_t scheduler_create_mutex(void);
 
-uint8_t scheduler_lock_mutex(mutex_handle_t mutex_handle);
+uint8_t scheduler_lock_mutex(mutex_handle_t mutex_handle, greenthread_handle_t current_handle);
 
-void scheduler_unlock_mutex(mutex_handle_t mutex_handle);
+void scheduler_unlock_mutex(mutex_handle_t mutex_handle, greenthread_handle_t current_handle);
+
+void scheduler_deadlock_report(void);
 
 #endif // SCHEDULER_H

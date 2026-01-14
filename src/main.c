@@ -52,6 +52,7 @@ void *thread_2(void *args) {
 uint64_t g_sum;
 uint64_t *g_array;
 mutex_handle_t g_mutex;
+mutex_handle_t g_mutex_2;
 
 struct thread_sum_args {
     uint64_t start;
@@ -73,8 +74,33 @@ void *thread_sum(void *args) {
             printf("Thread %d %lu\n", api_get_current_thread_id(), x);
         }
     }
+    api_lock_mutex(g_mutex_2);
+    g_sum += local_sum;
+    api_unlock_mutex(g_mutex_2);
+    api_unlock_mutex(g_mutex);
+    printf("Thread %d Done\n", api_get_current_thread_id());
+    return NULL;
+}
+
+void *thread_sum_2(void *args) {
+    struct thread_sum_args *targs = (struct thread_sum_args*)args;
+    uint64_t start = targs->start;
+    uint64_t end = targs->end;
+    uint64_t local_sum = 0;
+    for(uint64_t i = start; i <= end; i++) {
+        local_sum += g_array[i];
+    }
+    printf("Thread %d local sum: %ld\n", api_get_current_thread().id, local_sum);
+    api_lock_mutex(g_mutex_2);
+    for (uint64_t x = 0; x < 1000000000; x++) {
+        if (x % print_step == 0) {
+            printf("Thread %d %lu\n", api_get_current_thread_id(), x);
+        }
+    }
+    api_lock_mutex(g_mutex);
     g_sum += local_sum;
     api_unlock_mutex(g_mutex);
+    api_unlock_mutex(g_mutex_2);
     printf("Thread %d Done\n", api_get_current_thread_id());
     return NULL;
 }
@@ -92,6 +118,7 @@ int main(void) {
     init_g_array(n);
 
     g_mutex = api_create_mutex();
+    g_mutex_2 = api_create_mutex();
 
     struct thread_sum_args *a1 = malloc(sizeof(*a1));
     *a1 = (struct thread_sum_args){.start = 0, .end = n/2-1};
