@@ -91,16 +91,19 @@ mutex_handle_t api_create_mutex() {
     return ret;
 }
 
-void api_lock_mutex(mutex_handle_t mutex_handle) {
+uint8_t api_lock_mutex_internal(mutex_handle_t mutex_handle) {
     uint8_t acquired_lock = 0;
     greenthread_handle_t current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
         acquired_lock = scheduler_lock_mutex(mutex_handle, current_thread););
     
-    if (!acquired_lock) {
-        raise(SIGALRM);
-        api_lock_mutex(mutex_handle);
+    return acquired_lock;
+}
+
+void api_lock_mutex(mutex_handle_t mutex_handle) {
+    while(!api_lock_mutex_internal(mutex_handle)) {
+        pause();
     }
 }
 
@@ -118,16 +121,19 @@ sem_handle_t api_create_sem(uint8_t value) {
     return ret;
 }
 
-void api_wait_sem(sem_handle_t sem_handle) {
+uint8_t api_wait_sem_internal(sem_handle_t sem_handle) {
     uint8_t acquired_lock = 0;
     greenthread_handle_t current_thread;
     BLOCK_SCHEDULER(
         current_thread = scheduler_get_current_thread();
         acquired_lock = scheduler_wait_sem(sem_handle, current_thread););
     
-    if (!acquired_lock) {
-        raise(SIGALRM);
-        api_wait_sem(sem_handle);
+    return acquired_lock;
+}
+
+void api_wait_sem(sem_handle_t sem_handle) {
+    while(!api_wait_sem_internal(sem_handle)) {
+        pause();
     }
 }
 

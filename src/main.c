@@ -74,27 +74,27 @@ void *thread_sum(void *args) {
     }
     printf("Thread %d local sum: %ld\n", api_get_current_thread().id, local_sum);
 
-    // // Mutexes
-    // api_lock_mutex(g_mutex);
-    // for (uint64_t x = 0; x < 1000000000; x++) {
-    //     if (x % print_step == 0) {
-    //         printf("Thread %d %lu\n", api_get_current_thread_id(), x);
-    //     }
-    // }
-    // api_lock_mutex(g_mutex_2);
-    // g_sum += local_sum;
-    // api_unlock_mutex(g_mutex_2);
-    // api_unlock_mutex(g_mutex);
-
-    // Semaphores
-    api_wait_sem(g_sem);
+    // Mutexes
+    api_lock_mutex(g_mutex);
     for (uint64_t x = 0; x < 1000000000; x++) {
         if (x % print_step == 0) {
             printf("Thread %d %lu\n", api_get_current_thread_id(), x);
         }
     }
+    api_lock_mutex(g_mutex_2);
     g_sum += local_sum;
-    api_post_sem(g_sem);
+    api_unlock_mutex(g_mutex_2);
+    api_unlock_mutex(g_mutex);
+
+    // // Semaphores
+    // api_wait_sem(g_sem);
+    // for (uint64_t x = 0; x < 1000000000; x++) {
+    //     if (x % print_step == 0) {
+    //         printf("Thread %d %lu\n", api_get_current_thread_id(), x);
+    //     }
+    // }
+    // g_sum += local_sum;
+    // api_post_sem(g_sem);
 
     printf("Thread %d Done\n", api_get_current_thread_id());
     return NULL;
@@ -146,7 +146,6 @@ int main(void) {
     struct thread_sum_args *a2 = malloc(sizeof(*a2));
     *a2 = (struct thread_sum_args){.start = n/3, .end = 2*n/3-1};
     greenthread_handle_t handle_2 = api_create_thread(thread_sum, a2);
-
     // // For testing mutex deadlock detection
     // greenthread_handle_t handle_2 = api_create_thread(thread_sum_2, a2);
 
